@@ -35,7 +35,7 @@ namespace CodeDungeonAPI.Controllers
                     u.Id,
                     u.Name,
                     u.Email,
-                    u.Birthday,
+                    u.Age,
                     // Statistikalar UserInfo-dan gəlir
                     Stats = u.UserInfo != null ? new
                     {

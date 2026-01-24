@@ -33,7 +33,7 @@ namespace CodeDungeonAPI.Controllers
             {
                 Name = request.Name,
                 Email = request.Email,
-                Birthday = request.Birthday,
+                Age = request.Age,
                 Password = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
@@ -87,7 +87,7 @@ namespace CodeDungeonAPI.Controllers
                     u.Id,
                     u.Name,
                     u.Email,
-                    u.Birthday,
+                    u.Age,
                     Stats = new
                     {
                         u.UserInfo.UserLevel,

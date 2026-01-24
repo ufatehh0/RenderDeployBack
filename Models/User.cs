@@ -20,8 +20,8 @@ namespace CodeDungeonAPI.Models
         [Column("password")]
         public string Password { get; set; }
 
-        [Column("birthday")]
-        public DateTime Birthday { get; set; }
+        [Column("age")]
+        public int  Age { get; set; }
 
         // BU SƏTRİ ƏLAVƏ ET:
         // UserInfo ilə One-to-One əlaqəsini təmin edir

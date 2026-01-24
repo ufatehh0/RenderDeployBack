@@ -5,6 +5,7 @@
         // User cədvəli üçün
         public string Name { get; set; }
         public string Email { get; set; }
+        public int Age { get; set; }
 
         // UserInfo cədvəli üçün
         public int UserLevel { get; set; }
