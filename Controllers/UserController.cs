@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CodeDungeonAPI.Data;
 using CodeDungeonAPI.Models;
-using CodeDungeonAPI.DTOs; // Yeni DTO-lar üçün
+using CodeDungeonAPI.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CodeDungeonAPI.Controllers
 {
@@ -31,6 +32,7 @@ namespace CodeDungeonAPI.Controllers
             {
                 Name = request.Name,
                 Email = request.Email,
+                Birthday = request.Birthday, // Doğum günü əlavə edildi
                 Password = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
@@ -54,19 +56,43 @@ namespace CodeDungeonAPI.Controllers
             return Ok(new { message = "Giriş uğurludur!", token = CreateToken(user) });
         }
 
+        // İstifadəçinin öz məlumatlarını çəkməsi üçün endpoint
+        [Authorize] // Yalnız token-i olanlar daxil ola bilər
+        [HttpGet("me")]
+        public async Task<IActionResult> GetProfile()
+        {
+            // Token daxilindən NameIdentifier (ID) claim-ini oxuyuruq
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+
+            var userId = int.Parse(userIdClaim.Value);
+            var user = await _context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Name,
+                    u.Email,
+                    u.Birthday
+                }) // Şifrəni bura daxil etmirik
+                .FirstOrDefaultAsync();
+
+            if (user == null) return NotFound(new { message = "İstifadəçi tapılmadı." });
+
+            return Ok(user);
+        }
+
         private string CreateToken(User user)
         {
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim(ClaimTypes.Name, user.Name)
-    };
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.Name)
+            };
 
-            // SHA256 üçün bu key kifayətdir (ən az 32 simvol)
+            // SHA256 üçün ən az 32 simvol lazımdır
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("bu_cox_gizli_ve_uzun_bir_key_olmalidir_123!"));
-
-            // BURANI DƏYİŞDİK: HmacSha512Signature -> HmacSha256Signature
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
             var tokenDescriptor = new SecurityTokenDescriptor

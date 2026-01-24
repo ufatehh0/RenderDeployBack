@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CodeDungeonAPI.Models
 {
+    [Table("users")]
     public class User
     {
-        [Key] // Bu sütunun Primary Key olduğunu bildirir
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // ID-nin baza tərəfindən yaradıldığını bildirir
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
         public int Id { get; set; }
 
@@ -18,5 +19,8 @@ namespace CodeDungeonAPI.Models
 
         [Column("password")]
         public string Password { get; set; }
+
+        [Column("birthday")] // Bazadakı sütun adı
+        public DateTime Birthday { get; set; }
     }
 }
