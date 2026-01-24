@@ -20,7 +20,11 @@ namespace CodeDungeonAPI.Models
         [Column("password")]
         public string Password { get; set; }
 
-        [Column("birthday")] // Bazadakı sütun adı
+        [Column("birthday")]
         public DateTime Birthday { get; set; }
+
+        // BU SƏTRİ ƏLAVƏ ET:
+        // UserInfo ilə One-to-One əlaqəsini təmin edir
+        public virtual UserInfo UserInfo { get; set; }
     }
 }

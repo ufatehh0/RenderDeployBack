@@ -28,15 +28,29 @@ namespace CodeDungeonAPI.Controllers
             if (await _context.Users.AnyAsync(u => u.Email.ToLower() == request.Email.ToLower()))
                 return BadRequest(new { message = "Bu email artıq mövcuddur!" });
 
+            // 1. Əsas User yaradılır
             var user = new User
             {
                 Name = request.Name,
                 Email = request.Email,
-                Birthday = request.Birthday, // Doğum günü əlavə edildi
+                Birthday = request.Birthday,
                 Password = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
             _context.Users.Add(user);
+            await _context.SaveChangesAsync(); // ID burada yaranır
+
+            // 2. Avtomatik UserInfo (statistika) yaradılır
+            var userInfo = new UserInfo
+            {
+                Id = user.Id,
+                UserLevel = 1,
+                UserScore = 0,
+                CurrentGameLevel = 1,
+                ProfilePictureUrl = ""
+            };
+
+            _context.UsersInfo.Add(userInfo);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Qeydiyyat uğurludur!", token = CreateToken(user) });
@@ -56,30 +70,37 @@ namespace CodeDungeonAPI.Controllers
             return Ok(new { message = "Giriş uğurludur!", token = CreateToken(user) });
         }
 
-        // İstifadəçinin öz məlumatlarını çəkməsi üçün endpoint
-        [Authorize] // Yalnız token-i olanlar daxil ola bilər
+        [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetProfile()
         {
-            // Token daxilindən NameIdentifier (ID) claim-ini oxuyuruq
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Unauthorized();
 
             var userId = int.Parse(userIdClaim.Value);
-            var user = await _context.Users
+
+            // User və UserInfo məlumatlarını birlikdə (Join) çəkirik
+            var userProfile = await _context.Users
                 .Where(u => u.Id == userId)
                 .Select(u => new
                 {
                     u.Id,
                     u.Name,
                     u.Email,
-                    u.Birthday
-                }) // Şifrəni bura daxil etmirik
+                    u.Birthday,
+                    Stats = new
+                    {
+                        u.UserInfo.UserLevel,
+                        u.UserInfo.UserScore,
+                        u.UserInfo.CurrentGameLevel,
+                        u.UserInfo.ProfilePictureUrl
+                    }
+                })
                 .FirstOrDefaultAsync();
 
-            if (user == null) return NotFound(new { message = "İstifadəçi tapılmadı." });
+            if (userProfile == null) return NotFound(new { message = "İstifadəçi tapılmadı." });
 
-            return Ok(user);
+            return Ok(userProfile);
         }
 
         private string CreateToken(User user)
@@ -91,7 +112,6 @@ namespace CodeDungeonAPI.Controllers
                 new Claim(ClaimTypes.Name, user.Name)
             };
 
-            // SHA256 üçün ən az 32 simvol lazımdır
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("bu_cox_gizli_ve_uzun_bir_key_olmalidir_123!"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
