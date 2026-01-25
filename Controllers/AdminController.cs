@@ -75,4 +75,25 @@ public class AdminController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new { message = $"ID: {id} olan istifadəçinin gələn məlumatları uğurla yeniləndi!" });
     }
+
+    [HttpDelete("delete-user/{id}")]
+    public async Task<IActionResult> DeleteUserAsAdmin(int id, [FromHeader(Name = "X-Admin-Key")] string adminKey)
+    {
+        // 1. Admin Key yoxlanışı
+        if (adminKey != AdminSecretKey)
+            return Unauthorized(new { message = "Giriş qadağandır! Yanlış Admin Key." });
+
+        // 2. İstifadəçini tapırıq
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user == null)
+            return NotFound(new { message = "İstifadəçi tapılmadı." });
+
+        // 3. İstifadəçini silirik
+        // Qeyd: Bazada "ON DELETE CASCADE" quraşdırdığımız üçün UserInfo və UserCharacter avtomatik silinəcək.
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = $"ID: {id} olan istifadəçi və ona aid bütün məlumatlar uğurla silindi!" });
+    }
 }
