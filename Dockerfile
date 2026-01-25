@@ -1,20 +1,20 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
-
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["CodeDungeonAPI.csproj", "."]
-RUN dotnet restore "./CodeDungeonAPI.csproj"
+RUN dotnet restore "CodeDungeonAPI.csproj"
 COPY . .
-WORKDIR "/src/."
-RUN dotnet build "CodeDungeonAPI.csproj" -c Release -o /app/build
+RUN dotnet publish "CodeDungeonAPI.csproj" -c Release -o /app/publish --no-restore
 
-FROM build AS publish
-RUN dotnet publish "CodeDungeonAPI.csproj" -c Release -o /app/publish
-
-FROM base AS final
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
+
+# Portu göstər (format vacib: yalnız rəqəm, şərh yoxdur!)
+EXPOSE 10000
+
+# Render-in default portuna bind et
+ENV ASPNETCORE_URLS=http://0.0.0.0:10000
+
 ENTRYPOINT ["dotnet", "CodeDungeonAPI.dll"]
