@@ -8,22 +8,28 @@ namespace CodeDungeonAPI.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
-        // 1. Yeni cədvəli DbSet olaraq əlavə edirik
         public DbSet<UserInfo> UsersInfo { get; set; }
+        public DbSet<UserCharacter> UserCharacters { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // 2. User cədvəlinin adını təyin edirik
+            // 1. Cədvəl adlarını kiçik hərflərlə bazaya uyğunlaşdırırıq
             modelBuilder.Entity<User>().ToTable("users");
-
-            // 3. UserInfo cədvəlinin adını təyin edirik
             modelBuilder.Entity<UserInfo>().ToTable("users_info");
+            modelBuilder.Entity<UserCharacter>().ToTable("user_characters");
 
-            // 4. One-to-One əlaqəsini Fluent API ilə dəqiqləşdiririk
+            // 2. User <-> UserInfo (One-to-One) əlaqəsi
             modelBuilder.Entity<User>()
-                .HasOne(u => u.UserInfo) // User-in bir dənə UserInfo-su var
-                .WithOne(ui => ui.User)  // UserInfo-nun bir dənə User-i var
-                .HasForeignKey<UserInfo>(ui => ui.Id); // Xarici açar UserInfo-dakı Id-dir
+                .HasOne(u => u.UserInfo)
+                .WithOne(ui => ui.User)
+                .HasForeignKey<UserInfo>(ui => ui.Id);
+
+            // 3. User <-> UserCharacter (One-to-One) əlaqəsi
+            // Bu hissə mütləqdir ki, xarakter məlumatları düzgün Id ilə yazılsın
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.UserCharacter)
+                .WithOne(uc => uc.User)
+                .HasForeignKey<UserCharacter>(uc => uc.Id);
         }
     }
 }

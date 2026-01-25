@@ -1,4 +1,7 @@
-﻿namespace CodeDungeonAPI.DTOs
+﻿using CodeDungeonAPI.Models;
+using System.Text.Json.Serialization;
+
+namespace CodeDungeonAPI.DTOs
 {
     public class UserInfoUpdateDto
     {
@@ -6,5 +9,8 @@
         public int UserScore { get; set; }
         public int CurrentGameLevel { get; set; }
         public string? ProfilePictureUrl { get; set; }
+
+        [JsonIgnore] // Bu sətiri əlavə etsən, JSON cavabında "user": null görünməyəcək
+        public virtual User User { get; set; }
     }
 }

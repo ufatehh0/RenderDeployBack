@@ -23,6 +23,10 @@ namespace CodeDungeonAPI.Models
         [Column("profile_picture_url")]
         public string? ProfilePictureUrl { get; set; }
 
+
+
+
+
         // Navigation Property - User ilə əlaqə
         [ForeignKey("Id")]
         public virtual User User { get; set; }

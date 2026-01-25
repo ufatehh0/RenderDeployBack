@@ -26,5 +26,6 @@ namespace CodeDungeonAPI.Models
         // BU SƏTRİ ƏLAVƏ ET:
         // UserInfo ilə One-to-One əlaqəsini təmin edir
         public virtual UserInfo UserInfo { get; set; }
+        public virtual UserCharacter UserCharacter { get; set; }
     }
 }

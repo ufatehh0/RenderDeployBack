@@ -28,7 +28,6 @@ namespace CodeDungeonAPI.Controllers
             if (await _context.Users.AnyAsync(u => u.Email.ToLower() == request.Email.ToLower()))
                 return BadRequest(new { message = "Bu email artıq mövcuddur!" });
 
-            // 1. Əsas User yaradılır
             var user = new User
             {
                 Name = request.Name,
@@ -38,9 +37,9 @@ namespace CodeDungeonAPI.Controllers
             };
 
             _context.Users.Add(user);
-            await _context.SaveChangesAsync(); // ID burada yaranır
+            await _context.SaveChangesAsync();
 
-            // 2. Avtomatik UserInfo (statistika) yaradılır
+            // Statistikaların yaradılması
             var userInfo = new UserInfo
             {
                 Id = user.Id,
@@ -50,7 +49,20 @@ namespace CodeDungeonAPI.Controllers
                 ProfilePictureUrl = ""
             };
 
+            // Xarakter görünüşünün yaradılması
+            var userCharacter = new UserCharacter
+            {
+                Id = user.Id,
+                Gender = "male",
+                Emotion = "neutral",
+                Clothing = "tshirt",
+                HairColor = "#b96321",
+                Skin = "#ffdbac",
+                ClothingColor = "#3b82f6"
+            };
+
             _context.UsersInfo.Add(userInfo);
+            _context.UserCharacters.Add(userCharacter);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Qeydiyyat uğurludur!", token = CreateToken(user) });
@@ -63,9 +75,7 @@ namespace CodeDungeonAPI.Controllers
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
-            {
                 return Unauthorized(new { message = "Email və ya şifrə yanlışdır!" });
-            }
 
             return Ok(new { message = "Giriş uğurludur!", token = CreateToken(user) });
         }
@@ -77,9 +87,8 @@ namespace CodeDungeonAPI.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return Unauthorized();
 
-            var userId = int.Parse(userIdClaim.Value);
+            int userId = int.Parse(userIdClaim.Value);
 
-            // User və UserInfo məlumatlarını birlikdə (Join) çəkirik
             var userProfile = await _context.Users
                 .Where(u => u.Id == userId)
                 .Select(u => new
@@ -94,6 +103,15 @@ namespace CodeDungeonAPI.Controllers
                         u.UserInfo.UserScore,
                         u.UserInfo.CurrentGameLevel,
                         u.UserInfo.ProfilePictureUrl
+                    },
+                    Character = new
+                    {
+                        u.UserCharacter.Gender,
+                        u.UserCharacter.Emotion,
+                        u.UserCharacter.Clothing,
+                        u.UserCharacter.HairColor,
+                        u.UserCharacter.Skin,
+                        u.UserCharacter.ClothingColor
                     }
                 })
                 .FirstOrDefaultAsync();
@@ -118,13 +136,12 @@ namespace CodeDungeonAPI.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = creds
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-
             return tokenHandler.WriteToken(securityToken);
         }
     }

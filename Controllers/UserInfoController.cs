@@ -1,53 +1,52 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using CodeDungeonAPI.Data;
-using CodeDungeonAPI.Models;
+﻿using CodeDungeonAPI.Data;
 using CodeDungeonAPI.DTOs;
-using Microsoft.EntityFrameworkCore;
+using CodeDungeonAPI.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
-namespace CodeDungeonAPI.Controllers
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class UserInfoController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize] // Bütün metodlar üçün JWT token tələb olunur
-    public class UserInfoController : ControllerBase
+    private readonly AppDbContext _context;
+    public UserInfoController(AppDbContext context) { _context = context; }
+
+    [HttpPut("update-stats")]
+    public async Task<IActionResult> UpdateStats([FromBody] UserInfoUpdateDto request)
     {
-        private readonly AppDbContext _context;
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userInfo = await _context.UsersInfo.FirstOrDefaultAsync(ui => ui.Id == userId);
 
-        public UserInfoController(AppDbContext context)
-        {
-            _context = context;
-        }
+        if (userInfo == null) return NotFound();
 
-        // Oyunçunun öz statistikasını yeniləməsi üçün POST və ya PUT metodu
-        [HttpPost("update")]
-        public async Task<IActionResult> UpdateStats([FromBody] UserInfoUpdateDto request)
-        {
-            // 1. Token daxilindən istifadəçinin ID-sini tapırıq
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return Unauthorized();
+        userInfo.UserLevel = request.UserLevel;
+        userInfo.UserScore = request.UserScore;
+        userInfo.CurrentGameLevel = request.CurrentGameLevel;
+        userInfo.ProfilePictureUrl = request.ProfilePictureUrl;
 
-            int userId = int.Parse(userIdClaim.Value);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Statistikalar yeniləndi!" });
+    }
 
-            // 2. Bazadan həmin istifadəçiyə aid UserInfo-nu tapırıq
-            var userInfo = await _context.UsersInfo.FirstOrDefaultAsync(ui => ui.Id == userId);
+    [HttpPut("update-character")]
+    public async Task<IActionResult> UpdateCharacter([FromBody] CharacterUpdateDto request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var character = await _context.UserCharacters.FirstOrDefaultAsync(uc => uc.Id == userId);
 
-            if (userInfo == null)
-            {
-                return NotFound(new { message = "İstifadəçi statistikası tapılmadı." });
-            }
+        if (character == null) return NotFound();
 
-            // 3. Məlumatları yeniləyirik
-            userInfo.UserLevel = request.UserLevel;
-            userInfo.UserScore = request.UserScore;
-            userInfo.CurrentGameLevel = request.CurrentGameLevel;
-            userInfo.ProfilePictureUrl = request.ProfilePictureUrl;
+        character.Gender = request.Gender;
+        character.Emotion = request.Emotion;
+        character.Clothing = request.Clothing;
+        character.HairColor = request.HairColor;
+        character.Skin = request.Skin;
+        character.ClothingColor = request.ClothingColor;
 
-            // 4. Dəyişiklikləri yadda saxlayırıq
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Statistikalar uğurla yeniləndi!" });
-        }
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Xarakter görünüşü yeniləndi!" });
     }
 }
