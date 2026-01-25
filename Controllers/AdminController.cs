@@ -36,27 +36,43 @@ public class AdminController : ControllerBase
     [HttpPut("update-user/{id}")]
     public async Task<IActionResult> UpdateUserAsAdmin(int id, [FromBody] AdminUpdateDto request, [FromHeader(Name = "X-Admin-Key")] string adminKey)
     {
-        if (adminKey != AdminSecretKey) return Unauthorized();
+        // 1. Admin Key yoxlanışı
+        if (adminKey != AdminSecretKey) return Unauthorized(new { message = "Giriş qadağandır!" });
 
+        // 2. İstifadəçini bütün əlaqəli cədvəllərlə birlikdə tapırıq
         var user = await _context.Users
             .Include(u => u.UserInfo)
             .Include(u => u.UserCharacter)
             .FirstOrDefaultAsync(u => u.Id == id);
 
-        if (user == null) return NotFound();
+        if (user == null) return NotFound(new { message = "İstifadəçi tapılmadı." });
 
-        user.Name = request.Name;
-        user.Email = request.Email;
+        // 3. User cədvəli üçün (Name, Email, Age)
+        if (!string.IsNullOrEmpty(request.Name)) user.Name = request.Name;
+        if (!string.IsNullOrEmpty(request.Email)) user.Email = request.Email;
+        if (request.Age > 0) user.Age = (int)request.Age;
 
+        // 4. UserInfo (Stats) yeniləmə - Yalnız gələn dəyərlər
         if (user.UserInfo != null)
         {
-            user.UserInfo.UserLevel = request.UserLevel;
-            user.UserInfo.UserScore = request.UserScore;
-            user.UserInfo.CurrentGameLevel = request.CurrentGameLevel;
+            if (request.UserLevel.HasValue) user.UserInfo.UserLevel = request.UserLevel.Value;
+            if (request.UserScore.HasValue) user.UserInfo.UserScore = request.UserScore.Value;
+            if (request.CurrentGameLevel.HasValue) user.UserInfo.CurrentGameLevel = request.CurrentGameLevel.Value;
+            if (!string.IsNullOrEmpty(request.ProfilePictureUrl)) user.UserInfo.ProfilePictureUrl = request.ProfilePictureUrl;
         }
 
-        // Əgər DTO-da xarakter sahələri varsa bura əlavə edə bilərsən
+        // 5. UserCharacter (Görünüş) yeniləmə - Yalnız gələn dəyərlər
+        if (user.UserCharacter != null)
+        {
+            if (!string.IsNullOrEmpty(request.Gender)) user.UserCharacter.Gender = request.Gender;
+            if (!string.IsNullOrEmpty(request.Emotion)) user.UserCharacter.Emotion = request.Emotion;
+            if (!string.IsNullOrEmpty(request.Clothing)) user.UserCharacter.Clothing = request.Clothing;
+            if (!string.IsNullOrEmpty(request.HairColor)) user.UserCharacter.HairColor = request.HairColor;
+            if (!string.IsNullOrEmpty(request.Skin)) user.UserCharacter.Skin = request.Skin;
+            if (!string.IsNullOrEmpty(request.ClothingColor)) user.UserCharacter.ClothingColor = request.ClothingColor;
+        }
+
         await _context.SaveChangesAsync();
-        return Ok(new { message = "Yeniləndi!" });
+        return Ok(new { message = $"ID: {id} olan istifadəçinin gələn məlumatları uğurla yeniləndi!" });
     }
 }
