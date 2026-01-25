@@ -7,9 +7,21 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- 1. CORS Siyasətini Əlavə Et ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("HeroCodePolicy",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:8080") // Sənin xəta aldığın frontend ünvanı
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // Əgər cookie və ya auth başlıqları istifadə edirsənsə
+        });
+});
+
 // Connection String
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -56,14 +68,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// Swagger hər zaman aktiv (Render-də görmək üçün)
+// --- 2. Middleware Ardıcıllığını Düzəlt ---
 app.UseSwagger();
 app.UseSwaggerUI(c => {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CodeDungeon API v1");
     c.RoutePrefix = "swagger";
 });
 
-// Render HTTPS xətası üçün şərt
+// Render-də CORS xətası almamalı üçün UseCors mütləq UseRouting-dən sonra gəlməlidir
+app.UseRouting();
+
+// CORS-u burada aktivləşdiririk
+app.UseCors("HeroCodePolicy");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
@@ -71,5 +88,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 app.Run();
