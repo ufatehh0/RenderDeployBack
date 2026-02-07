@@ -14,9 +14,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Render dinamik port kullanır, ancak ASPNETCORE_URLS tanımlamak stabilite sağlar
-ENV ASPNETCORE_URLS=http://0.0.0.0:8080
+# Render'ın dinamik portunu kullanması için URL'i boş bırakıyoruz 
+# veya Program.cs'deki ayara güveniyoruz.
 EXPOSE 8080
 
-# DLL adı artık CodeDungeon.dll olmalı
 ENTRYPOINT ["dotnet", "CodeDungeon.dll"]
