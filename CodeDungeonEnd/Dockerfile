@@ -17,5 +17,4 @@ COPY --from=build /app/publish .
 # Render'ın dinamik portunu kullanması için URL'i boş bırakıyoruz 
 # veya Program.cs'deki ayara güveniyoruz.
 EXPOSE 8080
-
 ENTRYPOINT ["dotnet", "CodeDungeon.dll"]
