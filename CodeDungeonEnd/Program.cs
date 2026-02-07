@@ -1,5 +1,5 @@
-using CodeDungeon.Data;
-using CodeDungeon.Extensions; // Extension method için gerekli
+ï»¿using CodeDungeon.Data;
+using CodeDungeon.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,13 +9,25 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Veritabaný Baðlantýsý (PostgreSQL)
+// 1. VeritabanÄ± BaÄŸlantÄ±sÄ± (PostgreSQL)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
-// 2. Servis Kayýtlarý (Toplu Kayýt - Extension Method)
+// 2. CORS PolitikasÄ± (Render ve Local iÃ§in)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("RenderCorsPolicy", policy =>
+    {
+        policy.AllowAnyOrigin() // BaÅŸlangÄ±Ã§ aÅŸamasÄ±nda her yere izin verir, istersen domain ekleyebilirsin
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// 3. Servis KayÄ±tlarÄ±
 builder.Services.AddApplicationServices();
 
+// 4. Authentication (JWT)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -28,19 +40,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-            
-            ClockSkew = TimeSpan.Zero 
+            ClockSkew = TimeSpan.Zero
         };
     });
 
-// 4. Yetkilendirme Politikalarý
+// 5. Yetkilendirme PolitikalarÄ±
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole("Admin", "SuperAdmin"));
 });
 
-// 5. Controller ve JSON Ayarlarý
+// 6. Controller ve JSON AyarlarÄ±
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -49,7 +60,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
-// 6. Swagger Yapýlandýrmasý
+// 7. Swagger YapÄ±landÄ±rmasÄ±
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Formix API", Version = "v1" });
@@ -61,7 +72,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Sadece token deðerini yapýþtýrýn."
+        Description = "Token dÉ™yÉ™rini daxil edin."
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -78,12 +89,16 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// 7. HTTP Pipeline Yapýlandýrmasý
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// 8. HTTP Pipeline YapÄ±landÄ±rmasÄ±
+// Render'da test edebilmek iÃ§in Swagger'Ä± Production'da da aÃ§tÄ±k (Ä°stersen kapatabilirsin)
+app.UseSwagger();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Formix API v1");
+    c.RoutePrefix = string.Empty; // Swagger'Ä± ana sayfa yapar (render-url.com/)
+});
+
+// CORS'u Routing'den sonra, Auth'dan Ã¶nce ekle
+app.UseCors("RenderCorsPolicy");
 
 app.UseHttpsRedirection();
 
@@ -92,4 +107,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+// 9. Port YapÄ±landÄ±rmasÄ± (Render iÃ§in Kritik)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");

@@ -13,7 +13,7 @@ namespace CodeDungeon.DTOs
 
         public UserCharacter Character { get; set; } = new UserCharacter();
         public DateTime BirthDate { get; set; }
-        public bool IsPasswordConfirmed { get; set; }
+      
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; }
        
