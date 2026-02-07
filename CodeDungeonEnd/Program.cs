@@ -100,7 +100,7 @@ app.UseSwaggerUI(c => {
 // CORS'u Routing'den sonra, Auth'dan önce ekle
 app.UseCors("RenderCorsPolicy");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
