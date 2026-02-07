@@ -1,7 +1,9 @@
 ﻿using CodeDungeon.Data;
 using CodeDungeon.DTOs;
+using CodeDungeon.DTOs.UserDTOs;
+using CodeDungeon.Enums;
 using CodeDungeon.Helpers;
-using CodeDungeon.Models.Entities;
+using CodeDungeon.Models.Entities.User;
 using CodeDungeon.Services.Abstract;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,7 +24,30 @@ namespace CodeDungeon.Services.Concrete
             _context = context;
             _config = config;
         }
+        public async Task<bool> RegisterAsync(UserCreateDto registerDto)
+        {
+            
+            var exists = await _context.Users.AnyAsync(u => u.Email == registerDto.Email || u.Username == registerDto.Username);
+            if (exists) return false;
 
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = registerDto.Username,
+                Name = registerDto.Name,
+                Surname = registerDto.Surname,
+                Email = registerDto.Email,
+                BirthDate = registerDto.BirthDate.ToUniversalTime(),
+                Role = UserRole.User, 
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                PasswordHash = PasswordHasher.HashPassword(registerDto.Password),
+                Character = new UserCharacter() 
+            };
+
+            await _context.Users.AddAsync(user);
+            return await _context.SaveChangesAsync() > 0;
+        }
         public async Task<TokenResponseDto?> LoginAsync(UserLoginDto loginDto)
         {
             

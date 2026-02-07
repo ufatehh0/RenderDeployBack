@@ -1,8 +1,6 @@
 ﻿using CodeDungeon.Enums;
-using CodeDungeon.Models.Entities;
+using CodeDungeon.Models.Entities.User;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace CodeDungeon.Data
 {
@@ -12,46 +10,49 @@ namespace CodeDungeon.Data
         {
         }
 
-  
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<User>()
-                .Property(u => u.Role)
-                .HasConversion<string>();
 
+            modelBuilder.Entity<User>().Property(u => u.Role).HasConversion<string>();
 
             modelBuilder.Entity<User>(entity =>
             {
-               
+                entity.OwnsOne(u => u.Character);
                 entity.HasIndex(u => u.Username).IsUnique();
                 entity.HasIndex(u => u.Email).IsUnique();
-
-     
-                entity.Property(u => u.FinCode).HasMaxLength(7).IsFixedLength();
             });
 
             var adminId = Guid.Parse("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
 
-            modelBuilder.Entity<User>().HasData(new User
+            // 1. ADIM: User verisini anonim nesne olarak ekle (Navigasyon hatasını önler)
+            modelBuilder.Entity<User>().HasData(new
             {
                 Id = adminId,
-                Username = "superadmin",
+                Username = "admin",
                 Name = "Super",
                 Surname = "Admin",
-                FatherName = "System",
                 Email = "admin@formix.com",
-                FinCode = "ADMIN12", 
-                PhoneNumber = "+994000000000",
-                BirthDate = new DateTime(1990, 1, 1).ToUniversalTime(),
-                Role = UserRole.SuperAdmin, 
-                IsPasswordConfirmed = false, 
+                BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                Role = UserRole.SuperAdmin,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword("admin")
+            });
+
+            // 2. ADIM: Character verisini ekle
+            modelBuilder.Entity<User>().OwnsOne(u => u.Character).HasData(new
+            {
+                UserId = adminId, // Eğer yine hata verirse burayı 'Id' yapmayı dene
+                Gender = "None",
+                Emotion = "Neutral",
+                Clothing = "Default",
+                HairColor = "None",
+                Skin = "Default",
+                ClothingColor = "None"
             });
         }
-
     }
 }

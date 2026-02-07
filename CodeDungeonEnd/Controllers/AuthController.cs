@@ -1,4 +1,5 @@
 ﻿using CodeDungeon.DTOs;
+using CodeDungeon.DTOs.UserDTOs;
 using CodeDungeon.Services.Abstract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,16 @@ namespace CodeDungeonEnd.Controllers
             _authService = authService;
         }
 
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserCreateDto registerDto)
+        {
+            var result = await _authService.RegisterAsync(registerDto);
+            if (!result)
+                return BadRequest(new { message = "Bu istifadəçi adı və ya e-poçt artıq istifadə olunur." });
+
+            return Ok(new { message = "Qeydiyyat uğurla tamamlandı." });
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
         {
@@ -27,26 +38,7 @@ namespace CodeDungeonEnd.Controllers
             return Ok(result);
         }
 
-        [Authorize]
-        [HttpPost("set-initial-password")]
-        public async Task<IActionResult> SetPassword([FromBody] SetInitialPasswordDto dto)
-        {
-            
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(userIdStr))
-                return Unauthorized();
-
-            var userId = Guid.Parse(userIdStr);
-
-           
-            var result = await _authService.SetInitialPasswordAsync(userId, dto.NewPassword);
-
-            if (result == null)
-                return BadRequest(new { message = "Xəta baş verdi və ya şifrə artıq təyin edilib." });
-
-            return Ok(new { message = "Şifrə uğurla təyin edildi.", data = result });
-        }
+        
 
         [HttpPost("refresh-token")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto dto)

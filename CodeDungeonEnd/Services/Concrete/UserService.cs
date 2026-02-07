@@ -1,7 +1,7 @@
 ﻿using CodeDungeon.Data;
 using CodeDungeon.DTOs;
 using CodeDungeon.DTOs.UserDTOs;
-using CodeDungeon.Models.Entities;
+using CodeDungeon.Models.Entities.User;
 using CodeDungeon.Services.Abstract;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,27 +35,22 @@ namespace CodeDungeon.Services.Concrete
             return user == null ? null : MapToGetDto(user);
         }
 
-        public async Task<bool> CreateUserAsync(UserCreateDto dto)
+        public async Task<bool> UpdateCharacterAsync(Guid userId, UserCharacterUpdateDto characterDto)
         {
-            if (await _context.Users.AnyAsync(x => x.Email == dto.Email || x.Username == dto.Username))
-                return false;
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return false;
 
-            var user = new User
-            {
-                Username = dto.Username,
-                Name = dto.Name,
-                Surname = dto.Surname,
-                FatherName = dto.FatherName,
-                FinCode = dto.FinCode,
-                PhoneNumber = dto.PhoneNumber,
-                Email = dto.Email,
-                BirthDate = dto.BirthDate.ToUniversalTime(),
-                Role = dto.Role,
-                IsPasswordConfirmed = false,
-                CreatedAt = DateTime.UtcNow
-            };
+            
+            if (user.Character == null) user.Character = new UserCharacter();
 
-            _context.Users.Add(user);
+            user.Character.Gender = characterDto.Gender;
+            user.Character.Emotion = characterDto.Emotion;
+            user.Character.Clothing = characterDto.Clothing;
+            user.Character.HairColor = characterDto.HairColor;
+            user.Character.Skin = characterDto.Skin;
+            user.Character.ClothingColor = characterDto.ClothingColor;
+
+            _context.Users.Update(user);
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -67,12 +62,9 @@ namespace CodeDungeon.Services.Concrete
             user.Username = dto.Username;
             user.Name = dto.Name;
             user.Surname = dto.Surname;
-            user.FatherName = dto.FatherName;
             user.Email = dto.Email;
-            user.PhoneNumber = dto.PhoneNumber;
             user.BirthDate = dto.BirthDate.ToUniversalTime();
-            user.Role = dto.Role;
-            user.FinCode = dto.FinCode;
+
 
             _context.Users.Update(user);
             return await _context.SaveChangesAsync() > 0;
@@ -90,16 +82,12 @@ namespace CodeDungeon.Services.Concrete
         private static UserGetDto MapToGetDto(User u) => new UserGetDto
         {
             Id = u.Id,
-            Role = u.Role,
             Username = u.Username,
             Name = u.Name,
             Surname = u.Surname,
-            FatherName = u.FatherName,
             Email = u.Email,
-            FinCode = u.FinCode,
-            PhoneNumber = u.PhoneNumber,
+            Character = u.Character,
             BirthDate = u.BirthDate,
-            IsPasswordConfirmed = u.IsPasswordConfirmed,
             IsActive = u.IsActive,
             CreatedAt = u.CreatedAt
         };

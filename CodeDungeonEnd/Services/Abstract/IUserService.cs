@@ -8,8 +8,8 @@ namespace CodeDungeon.Services.Abstract
         Task<List<UserGetDto>> GetAllUsersAsync();
         Task<UserGetDto?> GetUserByIdAsync(Guid id);
         Task<UserGetDto?> GetUserByUserNameAsync(string username);
-        Task<bool> CreateUserAsync(UserCreateDto dto);
         Task<bool> UpdateUserAsync(Guid id, UserEditDTO dto);
+        Task<bool> UpdateCharacterAsync(Guid userId, UserCharacterUpdateDto characterDto);
         Task<bool> DeleteUserAsync(Guid id);
     }
 }

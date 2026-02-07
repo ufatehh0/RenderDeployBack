@@ -1,5 +1,5 @@
-using FormixBackEnd.Data;
-using FormixBackEnd.Extensions; // Extension method için gerekli
+using CodeDungeon.Data;
+using CodeDungeon.Extensions; // Extension method için gerekli
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

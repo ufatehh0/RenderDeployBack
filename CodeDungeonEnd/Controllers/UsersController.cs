@@ -3,6 +3,7 @@ using CodeDungeon.DTOs.UserDTOs;
 using CodeDungeon.Services.Abstract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CodeDungeonEnd.Controllers
 {
@@ -19,7 +20,7 @@ namespace CodeDungeonEnd.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "SuperAdmin,Admin")]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -42,20 +43,23 @@ namespace CodeDungeonEnd.Controllers
             return Ok(user);
         }
 
-        [HttpPost("create")]
-        [Authorize(Roles = "SuperAdmin,Admin")]
-        public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
+        [HttpPut("update-character")]
+        [Authorize(Roles = "User,SuperAdmin")]
+        public async Task<IActionResult> UpdateCharacter([FromBody] UserCharacterUpdateDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
-            var result = await _userService.CreateUserAsync(dto);
-            if (result) return Ok("İstifadəçi uğurla yaradıldı. İlk giriş üçün Fin Kod istifadə edilə bilər.");
+            var result = await _userService.UpdateCharacterAsync(Guid.Parse(userIdStr), dto);
 
-            return BadRequest("İstifadəçi yaradıla bilmədi (Email və ya Username artıq mövcud ola bilər).");
+            if (!result) return BadRequest(new { message = "Xarakter yenilənərkən xəta baş verdi." });
+
+            return Ok(new { message = "Xarakter uğurla yeniləndi." });
         }
 
-        [HttpPut("edit/{id:guid}")]
-        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpPut("edituser/{id:guid}")]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UserEditDTO dto)
         {
             var result = await _userService.UpdateUserAsync(id, dto);
@@ -65,7 +69,7 @@ namespace CodeDungeonEnd.Controllers
         }
 
         [HttpDelete("delete/{id:guid}")]
-        [Authorize(Roles = "SuperAdmin,Admin")]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _userService.DeleteUserAsync(id);

@@ -1,7 +1,7 @@
 ﻿using CodeDungeon.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace CodeDungeon.Models.Entities
+namespace CodeDungeon.Models.Entities.User
 {
     public class User
     {
@@ -9,7 +9,6 @@ namespace CodeDungeon.Models.Entities
 
         [Required]
         public UserRole Role { get; set; }
-
 
         public string? PasswordHash { get; set; } 
         
@@ -24,11 +23,9 @@ namespace CodeDungeon.Models.Entities
         public string Surname { get; set; } = string.Empty;
 
 
-        [Required, StringLength(7, MinimumLength = 7)]
-        public string FinCode { get; set; } = string.Empty;
+   
+        public UserCharacter Character { get; set; } = new UserCharacter();
 
-        [Required, Phone]
-        public string PhoneNumber { get; set; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
