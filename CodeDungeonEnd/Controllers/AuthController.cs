@@ -22,10 +22,16 @@ namespace CodeDungeonEnd.Controllers
         public async Task<IActionResult> Register([FromBody] UserCreateDto registerDto)
         {
             var result = await _authService.RegisterAsync(registerDto);
-            if (!result)
-                return BadRequest(new { message = "Bu istifadəçi adı və ya e-poçt artıq istifadə olunur." });
 
-            return Ok(new { message = "Qeydiyyat uğurla tamamlandı." });
+            if (result == null)
+                return BadRequest(new { message = "Bu istifadəçi adı və ya e-poçt artıq istifadə olunur və ya xəta baş verdi." });
+
+            
+            return Ok(new
+            {
+                message = "Qeydiyyat uğurla tamamlandı.",
+                data = result
+            });
         }
 
         [HttpPost("login")]

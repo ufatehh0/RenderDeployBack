@@ -26,6 +26,8 @@ namespace CodeDungeon.Models.Entities.User
    
         public UserCharacter Character { get; set; } = new UserCharacter();
 
+        public int Level { get; set; } = 0;
+
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;

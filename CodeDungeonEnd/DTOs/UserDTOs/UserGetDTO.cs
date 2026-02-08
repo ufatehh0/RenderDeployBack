@@ -11,6 +11,7 @@ namespace CodeDungeon.DTOs
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
 
+        public int Level { get; set; }
         public UserCharacter Character { get; set; } = new UserCharacter();
         public DateTime BirthDate { get; set; }
       

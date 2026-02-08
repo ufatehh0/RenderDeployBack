@@ -35,6 +35,7 @@ namespace CodeDungeon.Data
                 Name = "Super",
                 Surname = "Admin",
                 Email = "admin@formix.com",
+                Level = 100,
                 BirthDate = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 Role = UserRole.SuperAdmin,
                 IsActive = true,

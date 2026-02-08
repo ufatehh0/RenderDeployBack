@@ -24,12 +24,13 @@ namespace CodeDungeon.Services.Concrete
             _context = context;
             _config = config;
         }
-        public async Task<bool> RegisterAsync(UserCreateDto registerDto)
+        public async Task<TokenResponseDto?> RegisterAsync(UserCreateDto registerDto)
         {
             
             var exists = await _context.Users.AnyAsync(u => u.Email == registerDto.Email || u.Username == registerDto.Username);
-            if (exists) return false;
+            if (exists) return null;
 
+            
             var user = new User
             {
                 Id = Guid.NewGuid(),
@@ -38,15 +39,23 @@ namespace CodeDungeon.Services.Concrete
                 Surname = registerDto.Surname,
                 Email = registerDto.Email,
                 BirthDate = registerDto.BirthDate.ToUniversalTime(),
-                Role = UserRole.User, 
+                Role = UserRole.User,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 PasswordHash = PasswordHasher.HashPassword(registerDto.Password),
-                Character = new UserCharacter() 
+                Character = new UserCharacter()
             };
 
             await _context.Users.AddAsync(user);
-            return await _context.SaveChangesAsync() > 0;
+            var saved = await _context.SaveChangesAsync() > 0;
+
+           
+            if (saved)
+            {
+                return await GenerateTokensAndUpdateUser(user);
+            }
+
+            return null;
         }
         public async Task<TokenResponseDto?> LoginAsync(UserLoginDto loginDto)
         {

@@ -6,7 +6,8 @@ namespace CodeDungeon.Services.Abstract
     public interface IAuthService
     {
 
-        Task<bool> RegisterAsync(UserCreateDto registerDto);
+
+        Task<TokenResponseDto?> RegisterAsync(UserCreateDto registerDto);
         Task<TokenResponseDto?> LoginAsync(UserLoginDto loginDto);
        
         Task<TokenResponseDto?> RefreshTokenAsync(string refreshToken);

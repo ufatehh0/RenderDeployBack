@@ -63,6 +63,7 @@ namespace CodeDungeon.Services.Concrete
             user.Name = dto.Name;
             user.Surname = dto.Surname;
             user.Email = dto.Email;
+            user.Level = dto.Level;
             user.BirthDate = dto.BirthDate.ToUniversalTime();
 
 
@@ -85,6 +86,7 @@ namespace CodeDungeon.Services.Concrete
             Username = u.Username,
             Name = u.Name,
             Surname = u.Surname,
+            Level = u.Level,
             Email = u.Email,
             Character = u.Character,
             BirthDate = u.BirthDate,
