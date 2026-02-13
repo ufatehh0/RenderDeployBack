@@ -10,8 +10,9 @@ namespace CodeDungeon.Extensions
            
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IMatchMakingService, MatchMakingService>();
 
-           
+
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CodeDungeon.Enums;
+using CodeDungeon.Models.Entities.MatchMaking;
 using CodeDungeon.Models.Entities.User;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ namespace CodeDungeon.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Match> Matches { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
