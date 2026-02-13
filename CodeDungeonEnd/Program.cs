@@ -63,7 +63,7 @@ builder.Services.AddEndpointsApiExplorer();
 // 7. Swagger Yapılandırması
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Formix API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CodeDungeon API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
