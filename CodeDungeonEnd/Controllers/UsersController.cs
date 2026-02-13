@@ -27,6 +27,24 @@ namespace CodeDungeonEnd.Controllers
             return Ok(users);
         }
 
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized("Token etibarsızdır.");
+
+            
+            var user = await _userService.GetUserByIdAsync(Guid.Parse(userIdStr));
+
+            if (user == null) return NotFound("İstifadəçi tapılmadı.");
+
+            return Ok(user);
+        }
+
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {

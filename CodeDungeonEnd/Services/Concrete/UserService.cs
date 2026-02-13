@@ -23,6 +23,13 @@ namespace CodeDungeon.Services.Concrete
                 .ToListAsync();
         }
 
+        public async Task<UserGetDto?> GetCurrentUserAsync()
+        {
+           
+            var user = await _context.Users.FirstOrDefaultAsync();
+            return user == null ? null : MapToGetDto(user);
+        }
+
         public async Task<UserGetDto?> GetUserByIdAsync(Guid id)
         {
             var user = await _context.Users.FindAsync(id);
