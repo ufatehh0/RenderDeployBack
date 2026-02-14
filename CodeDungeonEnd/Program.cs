@@ -93,7 +93,7 @@ var app = builder.Build();
 // Render'da test edebilmek için Swagger'ı Production'da da açtık (İstersen kapatabilirsin)
 app.UseSwagger();
 app.UseSwaggerUI(c => {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Formix API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CodeDungeon API v1");
     c.RoutePrefix = string.Empty; // Swagger'ı ana sayfa yapar (render-url.com/)
 });
 
