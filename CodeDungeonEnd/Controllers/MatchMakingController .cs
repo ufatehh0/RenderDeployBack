@@ -103,12 +103,11 @@ namespace CodeDungeonEnd.Controllers
         //    return Ok(history);
         //}
 
-        // 6. ADMİN: BÜTÜN AKTİV OYUNLAR
-        [HttpGet("admin/active-matches")]
-        [Authorize(Roles = "SuperAdmin")]
+        // 6. ADMİN: BÜTÜN OYUNLAR
+        [HttpGet("allMatches")]
         public IActionResult GetAllActiveMatches()
         {
-            // Adminlər bütün matçları (Active, Finished, Cancelled) görə bilsin deyə filter qoymuruq
+            
             return Ok(_matchmakingService.GetActiveMatches());
         }
 
