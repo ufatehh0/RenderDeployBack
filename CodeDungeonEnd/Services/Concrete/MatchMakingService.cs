@@ -92,7 +92,18 @@ namespace CodeDungeon.Services.Concrete
         {
             lock (_lock) { return _activeMatches.ToList(); }
         }
+        public void AdminRemoveFromQueue(Guid userId)
+        {
+            lock (_lock)
+            {
+                // Kullanıcıyı listeden bul ve kaldır
+                if (_waitingPlayers.Contains(userId))
+                {
+                    _waitingPlayers.Remove(userId);
+                    Console.WriteLine($"[ADMIN] {userId} id-li istifadəçi növbədən çıxarıldı.");
+                }
+            }
+        }
 
-       
     }
 }

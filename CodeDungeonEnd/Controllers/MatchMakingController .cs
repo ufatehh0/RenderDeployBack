@@ -130,6 +130,22 @@ namespace CodeDungeonEnd.Controllers
             return Ok(new { message = "Maç admin tərəfindən sonlandırıldı." });
         }
 
+        [HttpDelete("admin/remove-from-queue/{userId:guid}")]
+        [Authorize(Roles = "SuperAdmin")]
+        public IActionResult RemoveFromQueue(Guid userId)
+        {
+            // Öncə istifadəçinin növbədə olub olmadığını yoxlayaq
+            var players = _matchmakingService.GetWaitingPlayers();
+
+            if (!players.Contains(userId))
+            {
+                return NotFound(new { message = "Bu istifadəçi növbədə tapılmadı." });
+            }
+
+            _matchmakingService.AdminRemoveFromQueue(userId);
+
+            return Ok(new { message = $"{userId} id-li istifadəçi admin tərəfindən növbədən silindi." });
+        }
         private Guid GetCurrentUserId()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);

@@ -11,5 +11,7 @@ namespace CodeDungeon.Services.Abstract
         void CheckAndStartMatch();
         void LeaveMatch(Guid userId);
         void EndMatch(Guid matchId);
+
+        void AdminRemoveFromQueue(Guid userId);
     }
 }

@@ -41,7 +41,7 @@ namespace CodeDungeonEnd.Controllers
             var user = await _userService.GetUserByIdAsync(Guid.Parse(userIdStr));
 
             if (user == null) return NotFound("İstifadəçi tapılmadı.");
-
+                
             return Ok(user);
         }
 
